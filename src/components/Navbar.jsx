@@ -61,7 +61,7 @@ const Navbar = () => {
           onClick={() => {
             scrollTo(0, 0); setIsOpen(false);
           }}
-          to="/"
+          to="/favorite"
         >
           Favourites
         </Link>
