@@ -15,8 +15,9 @@ function App() {
 
   return (
     <>
-      <Toaster/>
-      {!isAdminRoute && <Navbar/>}
+      <Toaster  position="top-right"
+  reverseOrder={false} />
+      {isAdminRoute && <Navbar/>}
       <Routes>
         <Route path='/' element={<Home/>} />
         <Route path='/movies' element={<Movies/>} />
@@ -25,7 +26,7 @@ function App() {
         <Route path='/my-bookings' element={<MyBookings/>} />
         <Route path='/favorite' element={<Favorite/>} />
       </Routes>   
-      {!isAdminRoute && <Footer/>}  
+      {isAdminRoute && <Footer/>}  
     </>
   )
 }
