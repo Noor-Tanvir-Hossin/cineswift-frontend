@@ -33,9 +33,8 @@ const AdminSidebar = () => {
         src={user.imageUrl}
         alt="sidebar"
       />
-      <p className="mt-2 text-base max-md:hidden">
-        {" "}
-        {user.firstName} {user.lastName}{" "}
+      <p className="mt-2 text-base max-md:hidden flex items-center justify-center">
+      {user.firstName} {user.lastName}
       </p>
       <div className="w-full">
         {adminNavLinks.map((link, index) => (
