@@ -20,9 +20,12 @@ const AddShow = () => {
   const handleDateTimeAdd = () => {
     if (!dateTimeInput) return;
     const [date, time] = dateTimeInput.split("T");
+    console.log(dateTimeInput.split("T"));
     if (!date || !time) return;
     setDateTimeSelection((prev) => {
+      console.log(prev);
       const times = prev[date] || [];
+      console.log(times)
       if (!times.includes(time)) {
         return { ...prev, [date]: [...times, time] };
       }
@@ -150,7 +153,7 @@ const AddShow = () => {
         </div>
       )}
 
-      <button className="bg-primary text-white px-8 py-2 mt-6 rounded hover:bg-primary/90 transition-all cursor-pointer">Add show</button>
+      <button className="bg-primary text-white px-8 py-2 mt-6 rounded hover:bg-primary/90 transition-all cursor">Add show</button>
     </>
   ) : (
     <Loading />

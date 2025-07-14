@@ -1,0 +1,93 @@
+import { use, useContext, useEffect } from "react";
+import { createContext } from "react";
+import axios from "axios";
+
+axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL;
+import { useUser, useAuth } from "@clerk/clerk-react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
+
+export const AppContext = createContext();
+export const AppProvider = ({ children }) => {
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [shows, setShows] = useState([]);
+  const [favoriteMovies, setFavoriteMovies] = useState([]);
+
+  const { user } = useUser();
+  const { getToken } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const fetchIsAdmin = async () => {
+    try {
+      const { data } = await axios.get("/admin/is-admin", {
+        headers: {
+          Authorization: `Bearer ${await getToken()}`,
+        },
+      });
+      setIsAdmin(data.isAdmin);
+      if (!data.isAdmin && location.pathname.startsWith("/admin")) {
+        navigate("/");
+        toast.error("You are not authorized to access admin dashboard.");
+      }
+    } catch (error) {
+      console.error("Error fetching admin status:", error);
+    }
+  };
+
+  const fetchShows = async () => {
+    try {
+      const { data } = await axios.get("/shows/all");
+      if (data.success) {
+        setShows(data.shows);
+      } else {
+        toast.error(data.message || "Failed to fetch shows.");
+      }
+    } catch (error) {
+      console.error("Error fetching shows:", error);
+    }
+  };
+
+  const fetchFavoriteMovies = async () => {
+    try {
+      const { data } = await axios.get("/user/favorites", {
+        headers: {
+          Authorization: `Bearer ${await getToken()}`,
+        },
+      });
+      if (data.success) {
+        setFavoriteMovies(data.movies);
+      } else {
+        toast.error(data.message || "Failed to fetch favorite movies.");
+      }
+    } catch (error) {
+      console.error("Error fetching favorite movies:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      fetchIsAdmin();
+      fetchFavoriteMovies();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    fetchShows();
+  }, []);
+
+  const value = {
+    axios,
+    favoriteMovies,
+    user,
+    fetchIsAdmin,
+    isAdmin,
+    shows,
+    fetchShows,
+    fetchFavoriteMovies,
+    navigate,
+  };
+  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
+};
+
+export const useAppContext = () => useContext(AppContext);
