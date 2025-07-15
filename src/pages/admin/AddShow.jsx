@@ -2,10 +2,12 @@ import React, { useEffect, useState } from "react";
 import { dummyShowsData } from "../../assets/assets";
 import Loading from "../../components/Loading";
 import Title from "../../components/admin/Title";
-import { StarIcon, CheckIcon,DeleteIcon } from "lucide-react";
+import { StarIcon, CheckIcon, DeleteIcon } from "lucide-react";
 import { kConverter } from "./../../lib/kConverter";
+import { useAppContext } from "../../context/AppContext";
 
 const AddShow = () => {
+  const { axios, getToken, user, image_base_url } = useAppContext();
   const currency = import.meta.env.VITE_CURRENCY;
   const [nowPlayingMovies, setNowPlayingMovies] = useState([]);
   const [selectedMovie, setSelectedMovie] = useState(null);
@@ -14,7 +16,19 @@ const AddShow = () => {
   const [dateTimeInput, setDateTimeInput] = useState("");
 
   const fetchNowPlayingMovies = async () => {
-    setNowPlayingMovies(dummyShowsData);
+    try {
+      const { data } = await axios.get("/show/now-playing", {
+        headers: {
+          Authorization: `Bearer ${await getToken()}`,
+        },
+      });
+      console.log("Now Playing Movies:", data);
+      if (data.success) {
+        setNowPlayingMovies(data.movies);
+      }
+    } catch (error) {
+      console.log("Error fetching now playing movies:", error);
+    }
   };
 
   const handleDateTimeAdd = () => {
@@ -25,7 +39,7 @@ const AddShow = () => {
     setDateTimeSelection((prev) => {
       console.log(prev);
       const times = prev[date] || [];
-      console.log(times)
+      console.log(times);
       if (!times.includes(time)) {
         return { ...prev, [date]: [...times, time] };
       }
@@ -48,15 +62,17 @@ const AddShow = () => {
   };
 
   useEffect(() => {
-    fetchNowPlayingMovies();
-  }, []);
+    if(user){
+      fetchNowPlayingMovies();
+    }
+  }, [user]);
 
   return nowPlayingMovies.length > 0 ? (
     <>
       <Title text1="Add" text2="Shows" />
-      <p className="mt-10  text-lg font-medium">Now Playing</p>
+      <p className="mt-10  text-lg font-medium">Now Playing Movies</p>
       <div className="overflow-x-auto pb-4">
-        <div className="group flex flex-wrap gap-4 mt-4 ">
+        <div className="group flex gap-4 mt-4 w-max ">
           {nowPlayingMovies.map((movie) => (
             <div
               key={movie.id}
@@ -65,7 +81,7 @@ const AddShow = () => {
             >
               <div className="relative rounded-lg overflow-hidden">
                 <img
-                  src={movie.poster_path}
+                  src={image_base_url + movie.poster_path}
                   alt=""
                   className="w-full object-cover brightness-90"
                 />
@@ -143,7 +159,11 @@ const AddShow = () => {
                       className="border border-primary px-2 py-1 flex items-center rounded"
                     >
                       <span> {time} </span>
-                      <DeleteIcon onClick={()=>handleRemoveTime(date,time)}  width={15} className="ml-2 text-red-500 hover:text-red-700 cursor-pointer"/>
+                      <DeleteIcon
+                        onClick={() => handleRemoveTime(date, time)}
+                        width={15}
+                        className="ml-2 text-red-500 hover:text-red-700 cursor-pointer"
+                      />
                     </div>
                   ))}
                 </div>
@@ -153,7 +173,9 @@ const AddShow = () => {
         </div>
       )}
 
-      <button className="bg-primary text-white px-8 py-2 mt-6 rounded hover:bg-primary/90 transition-all cursor">Add show</button>
+      <button className="bg-primary text-white px-8 py-2 mt-6 rounded hover:bg-primary/90 transition-all cursor">
+        Add show
+      </button>
     </>
   ) : (
     <Loading />

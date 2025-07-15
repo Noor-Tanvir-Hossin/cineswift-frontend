@@ -1,8 +1,8 @@
-import { use, useContext, useEffect } from "react";
+import { use, useContext, useEffect, useState } from "react";
 import { createContext } from "react";
 import axios from "axios";
 
-axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL;
+axios.defaults.baseURL = import.meta.env.VITE_BASE_URL;
 import { useUser, useAuth } from "@clerk/clerk-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
@@ -12,6 +12,7 @@ export const AppProvider = ({ children }) => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [shows, setShows] = useState([]);
   const [favoriteMovies, setFavoriteMovies] = useState([]);
+  const image_base_url = import.meta.env.VITE_TMDB_IMAGE_BASE_URL;
 
   const { user } = useUser();
   const { getToken } = useAuth();
@@ -37,7 +38,7 @@ export const AppProvider = ({ children }) => {
 
   const fetchShows = async () => {
     try {
-      const { data } = await axios.get("/shows/all");
+      const { data } = await axios.get("/show/all");
       if (data.success) {
         setShows(data.shows);
       } else {
@@ -86,6 +87,8 @@ export const AppProvider = ({ children }) => {
     fetchShows,
     fetchFavoriteMovies,
     navigate,
+    image_base_url,
+    getToken
   };
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
