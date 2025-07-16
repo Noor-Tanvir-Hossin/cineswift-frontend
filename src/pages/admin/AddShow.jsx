@@ -5,6 +5,7 @@ import Title from "../../components/admin/Title";
 import { StarIcon, CheckIcon, DeleteIcon } from "lucide-react";
 import { kConverter } from "./../../lib/kConverter";
 import { useAppContext } from "../../context/AppContext";
+import { toast } from 'react-hot-toast';
 
 const AddShow = () => {
   const { axios, getToken, user, image_base_url } = useAppContext();
@@ -14,6 +15,7 @@ const AddShow = () => {
   const [dateTimeSelection, setDateTimeSelection] = useState({});
   const [showPrice, setShowPrice] = useState("");
   const [dateTimeInput, setDateTimeInput] = useState("");
+  const [addingShow, setAddingShow] = useState(false);
 
   const fetchNowPlayingMovies = async () => {
     try {
@@ -61,11 +63,49 @@ const AddShow = () => {
     });
   };
 
+const handleSbumit = async () => {
+  try {
+    setAddingShow(true);
+    if(!selectedMovie || !showPrice || Object.keys(dateTimeSelection).length === 0) {
+      return toast("Please select a movie, enter show price and add show time.");      
+    }
+
+    const showsInput = Object.entries(dateTimeSelection).map(([date, times]) => ({date,times}));
+
+    const payload = {
+      movieId: selectedMovie,
+      showsInput,
+      showPrice: Number(showPrice),
+    }
+    console.log("Payload for adding show:", payload);
+
+    const { data } = await axios.post("/show/add", payload, {
+      headers: {
+        Authorization: `Bearer ${await getToken()}`,
+      },
+    })
+
+    if(data.success){
+        toast.success(data.message || "show added successfully !")
+        setSelectedMovie(null);
+        setShowPrice("");
+        setDateTimeSelection({});
+    }else{
+        toast.error(data.message || "Failed to add show.");
+    }
+
+  }  catch (error) {
+    console.error("Error adding show:", error);
+    toast.error("Failed to add show. Please try again.");    
+  }
+  setAddingShow(false);
+}
+
   useEffect(() => {
     if(user){
       fetchNowPlayingMovies();
     }
-  }, [user]);
+  }, [user ]);
 
   return nowPlayingMovies.length > 0 ? (
     <>
@@ -173,7 +213,7 @@ const AddShow = () => {
         </div>
       )}
 
-      <button className="bg-primary text-white px-8 py-2 mt-6 rounded hover:bg-primary/90 transition-all cursor">
+      <button onClick={handleSbumit} disabled={addingShow} className="bg-primary text-white px-8 py-2 mt-6 rounded hover:bg-primary/90 transition-all cursor">
         Add show
       </button>
     </>
